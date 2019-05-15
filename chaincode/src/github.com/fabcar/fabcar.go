@@ -21,7 +21,7 @@
  * The sample smart contract for documentation topic:
  * Writing Your First Blockchain Application
  */
-
+//这是一个关于汽车的智能合约
 package main
 
 /* Imports
@@ -35,15 +35,19 @@ import (
 	"strconv"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+        /*
+	 *导入了chaincode包shim，便于链码和底层区块链网络交互来访问状态变量、交易
+	 *上下文、调用方证书和属性，并调用其他链码和执行其他操作
+	 */
 	sc "github.com/hyperledger/fabric/protos/peer"
 )
-
+// Define the Smart Contract structure(实现简单的链式代码管理资产)
 // Define the Smart Contract structure
 type SmartContract struct {
 }
 
 // Define the car structure, with 4 properties.  Structure tags are used by encoding/json library
-type Car struct {
+type Car struct {//定义一个汽车类，其中有四个属性
 	Make   string `json:"make"`
 	Model  string `json:"model"`
 	Colour string `json:"colour"`
@@ -54,6 +58,12 @@ type Car struct {
  * The Init method is called when the Smart Contract "fabcar" is instantiated by the blockchain network
  * Best practice is to have any Ledger initialization in separate function -- see initLedger()
  */
+/*
+ *s *SmartContract表示给SmartContract声明了一个方法
+ *Init和Invoke函数中都传入了一个参数，即"stub shim.ChaincodeStubInterface"
+ *这个参数提供的接口为编写链码的业务逻辑提供了一系列实用的API
+ *假设一切顺利，将返回一个表示初始化已经成功的sc.Response对象
+ */
 func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
 	return shim.Success(nil)
 }
@@ -61,6 +71,9 @@ func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
 /*
  * The Invoke method is called as a result of an application request to run the Smart Contract "fabcar"
  * The calling application program has also specified the particular smart contract function to be called, with arguments
+ */
+/*调用函数Invoke中涉及该智能合约的不同应用场景，在不同的应用场景之下采用不同的方法或函数
+ *如querryCar,initLedger,createCar,queryALLCars和changeCarOwner
  */
 func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response {
 
@@ -81,7 +94,7 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 
 	return shim.Error("Invalid Smart Contract function name.")
 }
-
+//查询汽车操作
 func (s *SmartContract) queryCar(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 
 	if len(args) != 1 {
@@ -91,9 +104,9 @@ func (s *SmartContract) queryCar(APIstub shim.ChaincodeStubInterface, args []str
 	carAsBytes, _ := APIstub.GetState(args[0])
 	return shim.Success(carAsBytes)
 }
-
+//下面的函数是初始化账本
 func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Response {
-	cars := []Car{
+	cars := []Car{//汽车类中有各种属性，并对其进行了初始化
 		Car{Make: "Toyota", Model: "Prius", Colour: "blue", Owner: "Tomoko"},
 		Car{Make: "Ford", Model: "Mustang", Colour: "red", Owner: "Brad"},
 		Car{Make: "Hyundai", Model: "Tucson", Colour: "green", Owner: "Jin Soo"},
@@ -106,7 +119,7 @@ func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Respo
 		Car{Make: "Holden", Model: "Barina", Colour: "brown", Owner: "Shotaro"},
 	}
 
-	i := 0
+	i := 0//一个循环，将上面所有车的实例导入到状态中
 	for i < len(cars) {
 		fmt.Println("i is ", i)
 		carAsBytes, _ := json.Marshal(cars[i])
@@ -194,7 +207,7 @@ func (s *SmartContract) changeCarOwner(APIstub shim.ChaincodeStubInterface, args
 }
 
 // The main function is only relevant in unit test mode. Only included here for completeness.
-func main() {
+func main() {//函数main在实例化时启动容器中的链码
 
 	// Create a new Smart Contract
 	err := shim.Start(new(SmartContract))
