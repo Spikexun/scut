@@ -13,7 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
+/*
+ *每一个chaincode需要实现Chaincode接口，其方法是用于响应接收到的transaction。
+ *当chaincode接收到instantiate或者upgrade transaction时Init方法被调用了，以便
+ *chaincode能够执行任何必要的初始化，包括application state的初始化。
+ *当chaincode接收到invoke transaction时调用invoke方法，用于处理transaction
+ *proposal。
+*/
 package main
 
 //WARNING - this chaincode's ID is hard-coded in chaincode_example04 to illustrate one way of
@@ -23,22 +29,22 @@ package main
 //hard-coding.
 
 import (
-	"fmt"
-	"strconv"
+	"fmt"//格式化IO包，实现了输入，输出函数
+	"strconv"//包含一系列函数和方法包括ParseBool将字符串转变为布尔值，FormatBool将布尔值转换为字符串“true"或"false"等类型转换函数
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
 // SimpleChaincode example simple Chaincode implementation
-type SimpleChaincode struct {
+type SimpleChaincode struct {//定义名为SimpleChaincode的空结构体
 }
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("ex02 Init")
 	_, args := stub.GetFunctionAndParameters()
-	var AC, CA,EA,NA,SA,SHA,SIA,WA,XA string    // Entities
-	var ACval, CAval,EAval,NAval,SAval,SHAval,SIAval,WAval,XAval int // Asset holdings
+	var AC, CA,EA,NA,SA,SHA,SIA,WA,XA string    // Entities(实体)
+	var ACval, CAval,EAval,NAval,SAval,SHAval,SIAval,WAval,XAval int // Asset holdings(资产持有量)
 	var err error
 
 	//if len(args) != 18 {
@@ -137,7 +143,10 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
 
 	return shim.Success(nil)
 }
-
+/*实现Invoke函数，负责处理传递的交易信息
+ *并且在Inovke函数中，还有invoke,delete,query三个函数，用于细化交易的不同情况分支
+ *这三个函数会在下面同样被实现
+*/
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("ex02 Invoke")
 	function, args := stub.GetFunctionAndParameters()
@@ -257,12 +266,13 @@ func (t *SimpleChaincode) query(stub shim.ChaincodeStubInterface, args []string)
 		return shim.Error(jsonResp)
 	}
 
-	jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
+
+        jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
 	fmt.Printf("Query Response:%s\n", jsonResp)
 	return shim.Success(Avalbytes)
-}
+        }
 
-func main() {
+       func main() {      //主函数在实例化时启动容器中的链码
 	err := shim.Start(new(SimpleChaincode))
 	if err != nil {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
